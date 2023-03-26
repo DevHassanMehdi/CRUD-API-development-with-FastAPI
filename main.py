@@ -31,6 +31,7 @@ my_posts = [
 		"id": 13876}]
 
 
+# A method to find the specific post requested by user in get request by id
 def find_post(post_id):
 	for post in my_posts:
 		if post["id"] == post_id:
@@ -42,6 +43,13 @@ def find_post(post_id):
 @app.get("/posts")
 def get_all_posts():
 	return {"data": my_posts}
+
+
+# Find the latest post
+@app.get("/posts/latest")
+def get_latest_post():
+	post = my_posts[len(my_posts) - 1]
+	return {"data": post}
 
 
 # Find a specific post using the post id
