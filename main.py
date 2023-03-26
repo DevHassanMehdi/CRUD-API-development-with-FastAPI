@@ -1,5 +1,4 @@
 from fastapi import FastAPI  # The fastAPI
-from fastapi.params import Body  # For receiving data in post requests
 from pydantic import BaseModel  # To specify a schema of what the post request data should look like
 from typing import Optional  # In case we want to add some optional data a user may or may not send with POST request
 from random import randrange  # To temporarily create random Ids when working without database
@@ -18,23 +17,38 @@ class Post(BaseModel):
 
 
 my_posts = [
-	{'title': 'this is the first post',
+	{
+		'title': 'this is the first post',
 		'content': 'this is the content',
 		'published': False,
 		'rating': 2.4,
 		"id": 54351},
-	{'title': 'this is the second post',
+	{
+		'title': 'this is the second post',
 		'content': 'this is the content',
 		'published': False,
 		'rating': 4.0,
 		"id": 13876}]
 
 
+def find_post(post_id):
+	for post in my_posts:
+		if post["id"] == post_id:
+			return post
+
+
 # Path Operation
 # Get request
 @app.get("/posts")
-def root():
+def get_all_posts():
 	return {"data": my_posts}
+
+
+# Find a specific post using the post id
+@app.get("/posts/{id}")
+def get_post(post_id: int):  # The post id should be int. FastAPI will auto convert string number into int
+	post = find_post(post_id)
+	return {"data": post}
 
 
 # Path Operation
