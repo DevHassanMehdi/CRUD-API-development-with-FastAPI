@@ -45,7 +45,7 @@ def get_all_posts():
 
 
 # Find a specific post using the post id
-@app.get("/posts/{id}")
+@app.get("/posts/{post_id}")
 def get_post(post_id: int):  # The post id should be int. FastAPI will auto convert string number into int
 	post = find_post(post_id)
 	return {"data": post}
