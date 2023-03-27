@@ -2,6 +2,8 @@ from fastapi import FastAPI  # The fastAPI
 from pydantic import BaseModel  # To specify a schema of what the post request data should look like
 from typing import Optional  # In case we want to add some optional data a user may or may not send with POST request
 from random import randrange  # To temporarily create random Ids when working without database
+from fastapi import HTTPException, status  # To raise appropriate HTTP Exception and set http status. Like 404 not found
+
 
 app = FastAPI()
 
@@ -40,28 +42,32 @@ def find_post(post_id):
 
 # Path Operation
 # Get request
-@app.get("/posts")
+@app.get("/posts", status_code=status.HTTP_200_OK)
 def get_all_posts():
 	return {"data": my_posts}
 
 
 # Find the latest post
-@app.get("/posts/latest")
+@app.get("/posts/latest", status_code=status.HTTP_200_OK)
 def get_latest_post():
 	post = my_posts[len(my_posts) - 1]
+	if not post:  # If item not found set http status to 404
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No posts yet.")
 	return {"data": post}
 
 
 # Find a specific post using the post id
-@app.get("/posts/{post_id}")
-def get_post(post_id: int):  # The post id should be int. FastAPI will auto convert string number into int
+@app.get("/posts/{post_id}", status_code=status.HTTP_200_OK)
+def get_post(post_id: int):  # The post id should be int.
 	post = find_post(post_id)
+	if not post:  # If item not found set http status to 404
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {post_id} not found")
 	return {"data": post}
 
 
 # Path Operation
 # POST request
-@app.post("/posts")
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_post(post: Post):  # Receive data from post and validate it with the Post class schema
 	post_dict = post.dict()
 	post_dict["id"] = randrange(1, 9999999)
