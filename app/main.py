@@ -1,6 +1,6 @@
 from fastapi import FastAPI  # The fastAPI
 from pydantic import BaseModel  # To specify a schema of what the post request data should look like
-from fastapi import HTTPException, Response, status  # To raise appropriate HTTP Exception and set http status
+from fastapi import HTTPException, status  # To raise appropriate HTTP Exception and set http status
 import psycopg2  # Library to deal with our Postgres database
 from psycopg2.extras import RealDictCursor  # To get the column names when we return something from the database
 import time  # To add time pause between connection failing and retry connecting to the database
