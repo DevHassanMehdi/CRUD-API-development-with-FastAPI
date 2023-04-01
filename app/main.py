@@ -1,8 +1,9 @@
 from fastapi import FastAPI  # The fastAPI
 from pydantic import BaseModel  # To specify a schema of what the post request data should look like
-from typing import Optional  # In case we want to add some optional data a user may or may not send with POST request
-from random import randrange  # To temporarily create random Ids when working without database
 from fastapi import HTTPException, Response, status  # To raise appropriate HTTP Exception and set http status
+import psycopg2  # Library to deal with our Postgres database
+from psycopg2.extras import RealDictCursor  # To get the column names when we return something from the database
+import time  # To add time pause between connection failing and retry connecting to the database
 
 app = FastAPI()
 
@@ -14,8 +15,21 @@ class Post(BaseModel):
 	content: str
 	# Optional. If not provided by user, set a default value or None
 	published: bool = True
-	rating: Optional[float] = None
 
+
+# Connect to our postgres database
+while True:
+	try:
+		# Connection arguments
+		connection = psycopg2.connect(
+			host='localhost', database='fastapi', user='postgres', password='root', cursor_factory=RealDictCursor)
+		cursor = connection.cursor()  # Used to execute SQL queries
+		print("Connection Successful")
+		break
+	except Exception as error:
+		# If connection fails, print the error and retry to connect every 2 seconds
+		print("Error:", error)
+		time.sleep(2)
 
 my_posts = [
 	{
@@ -51,16 +65,22 @@ def find_post_index(post_id):
 # Create a post
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_post(post: Post):  # Receive data from post and validate it with the Post class schema
-	post_dict = post.dict()
-	post_dict["id"] = randrange(1, 9999999)
-	my_posts.append(post_dict)
-	return {"Data": post_dict}
+	print(post)
+	cursor.execute(
+		"""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *""",
+		(post.title, post.content, post.published))
+	new_post = cursor.fetchone()
+	connection.commit()
+	
+	return {"Data": new_post}
 
 
 # Get all posts
 @app.get("/posts", status_code=status.HTTP_200_OK)
 def get_all_posts():
-	return {"data": my_posts}
+	cursor.execute("""SELECT * FROM posts""")
+	posts = cursor.fetchall()
+	return {"data": posts}
 
 
 # Find the latest post
