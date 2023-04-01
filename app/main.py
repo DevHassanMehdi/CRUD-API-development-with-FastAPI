@@ -87,7 +87,7 @@ def get_all_posts():
 @app.get("/posts/latest", status_code=status.HTTP_200_OK)
 def get_latest_post():
 	cursor.execute("""SELECT * FROM posts ORDER BY id DESC LIMIT 1""")
-	post = cursor.fetchall()
+	post = cursor.fetchone()
 	if not post:  # If item not found set http status to 404
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No posts yet.")
 	return {"data": post}
@@ -95,10 +95,11 @@ def get_latest_post():
 
 # Find a specific post using the post id
 @app.get("/posts/{post_id}", status_code=status.HTTP_200_OK)
-def get_post(post_id: int):  # The post id should be int.
-	post = find_post(post_id)
+def get_post(post_id):  # The post id should be int.
+	cursor.execute("""SELECT * FROM posts WHERE id = %s""", post_id)
+	post = cursor.fetchone()
 	if not post:  # If item not found set http status to 404
-		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {post_id} not found")
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No posts yet.")
 	return {"data": post}
 
 
