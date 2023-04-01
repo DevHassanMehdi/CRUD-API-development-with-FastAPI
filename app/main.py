@@ -86,7 +86,8 @@ def get_all_posts():
 # Find the latest post
 @app.get("/posts/latest", status_code=status.HTTP_200_OK)
 def get_latest_post():
-	post = my_posts[len(my_posts) - 1]
+	cursor.execute("""SELECT * FROM posts ORDER BY id DESC LIMIT 1""")
+	post = cursor.fetchall()
 	if not post:  # If item not found set http status to 404
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No posts yet.")
 	return {"data": post}
