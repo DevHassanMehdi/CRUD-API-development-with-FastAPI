@@ -4,8 +4,23 @@ from fastapi import HTTPException, status  # To raise appropriate HTTP Exception
 import psycopg2  # Library to deal with our Postgres database
 from psycopg2.extras import RealDictCursor  # To get the column names when we return something from the database
 import time  # To add time pause between connection failing and retry connecting to the database
+from . import models
+from .database import engine, session_local
 
+# To create all the defined models. These models are the tables we defined in the models.py file.
+models.Base.metadata.create_all(bind=engine)
+
+# Initialize our app
 app = FastAPI()
+
+
+# Create session to get the database
+def get_db():
+	db = session_local()
+	try:
+		yield db
+	finally:
+		db.close()
 
 
 # POST request data schema
